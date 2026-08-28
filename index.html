@@ -11,9 +11,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Lightning">
-  <link rel="manifest" href="/manifest.json">
-  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
-  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/icon.svg">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
 
   <!-- Leaflet CSS -->
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
@@ -24,7 +24,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   
   <!-- App Stylesheet -->
-  <link rel="stylesheet" href="/css/style.css?v=3.1">
+  <link rel="stylesheet" href="css/style.css?v=3.2">
 </head>
 <body class="dark-theme">
   <!-- Map Container -->
@@ -247,11 +247,11 @@
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
   
   <!-- App Scripts (Cache-Busted) -->
-  <script src="/js/audio.js?v=3.1"></script>
-  <script src="/js/radar.js?v=3.1"></script>
-  <script src="/js/stations.js?v=3.1"></script>
-  <script src="/js/renderer.js?v=3.1"></script>
-  <script src="/js/app.js?v=3.1"></script>
+  <script src="js/audio.js?v=3.2"></script>
+  <script src="js/radar.js?v=3.2"></script>
+  <script src="js/stations.js?v=3.2"></script>
+  <script src="js/renderer.js?v=3.2"></script>
+  <script src="js/app.js?v=3.2"></script>
 
   <!-- PWA Service Worker Registration -->
   <script>
@@ -260,7 +260,7 @@
         for (let reg of regs) reg.update();
       });
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('/sw.js?v=2.5').catch(err => console.log('SW error:', err));
+        navigator.serviceWorker.register('sw.js?v=3.2').catch(err => console.log('SW error:', err));
       });
     }
   </script>

@@ -3,18 +3,20 @@
  * Caches app shell assets for instant startup and offline readiness.
  */
 
-const CACHE_NAME = "lightning-radar-v2";
+const CACHE_NAME = "lightning-radar-v3.2";
 const ASSETS = [
-  "/",
-  "/index.html",
-  "/css/style.css",
-  "/js/audio.js",
-  "/js/radar.js",
-  "/js/stations.js",
-  "/js/renderer.js",
-  "/js/app.js",
-  "/manifest.json",
-  "/icons/icon.svg"
+  "./",
+  "index.html",
+  "css/style.css?v=3.2",
+  "js/audio.js?v=3.2",
+  "js/radar.js?v=3.2",
+  "js/stations.js?v=3.2",
+  "js/renderer.js?v=3.2",
+  "js/app.js?v=3.2",
+  "manifest.json",
+  "icons/icon.svg",
+  "icons/icon-192.png",
+  "icons/icon-512.png"
 ];
 
 self.addEventListener("install", (e) => {
