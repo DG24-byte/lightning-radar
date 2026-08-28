@@ -1,0 +1,676 @@
+/* ==========================================================================
+   Lightning Radar — Dark Glassmorphic Stylesheet
+   Optimized for Desktop & Touch-Screen Mobile Devices
+   ========================================================================== */
+
+:root {
+  --bg-primary: #0a0e17;
+  --bg-panel: rgba(13, 17, 23, 0.82);
+  --bg-panel-hover: rgba(22, 27, 34, 0.92);
+  --border-panel: rgba(255, 255, 255, 0.12);
+  --text-primary: #f0f6fc;
+  --text-secondary: #8b949e;
+  --text-muted: #484f58;
+  
+  --accent-lightning: #ffd700;
+  --accent-cyan: #38bdf8;
+  --accent-live: #22c55e;
+  --accent-alert: #ef4444;
+  --accent-purple: #a855f7;
+
+  --stroke-new: #ffffff;
+  --stroke-5m: #ffd700;
+  --stroke-20m: #ff8c00;
+  --stroke-60m: #dc2626;
+  --stroke-old: #7c3aed;
+
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+  --header-height: 56px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+}
+
+/* Map Container */
+#map {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 1;
+  background-color: #0b0e14;
+}
+
+/* 60 FPS HTML5 Canvas Overlay */
+#lightningCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none; /* Let Leaflet handle map drag/zoom */
+}
+
+/* Glassmorphism Reusable Style */
+.glass-panel {
+  background: var(--bg-panel);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid var(--border-panel);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+}
+
+/* ==========================================================================
+   Top Navigation Bar
+   ========================================================================== */
+
+#topBar {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  right: 12px;
+  height: var(--header-height);
+  border-radius: 14px;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  transition: all 0.3s ease;
+}
+
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app-branding {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 700;
+  font-size: 16px;
+  letter-spacing: -0.3px;
+}
+
+.bolt-icon {
+  font-size: 20px;
+  filter: drop-shadow(0 0 8px #ffd700);
+}
+
+.status-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: #eab308;
+}
+
+.status-dot.live {
+  background-color: var(--accent-live);
+  box-shadow: 0 0 8px var(--accent-live);
+  animation: pulse-dot 2s infinite;
+}
+
+.status-dot.error {
+  background-color: var(--accent-alert);
+  box-shadow: 0 0 8px var(--accent-alert);
+}
+
+@keyframes pulse-dot {
+  0% { transform: scale(0.95); opacity: 0.8; }
+  50% { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(0.95); opacity: 0.8; }
+}
+
+.status-text {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+/* Telemetry Stream in Top Bar */
+.telemetry-bar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.telemetry-item {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.25);
+  padding: 4px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.telemetry-label {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+
+.telemetry-value {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.telemetry-value.highlight {
+  color: var(--accent-lightning);
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.telemetry-value.accent {
+  color: var(--accent-cyan);
+}
+
+.telemetry-unit {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.thunder-eta {
+  font-size: 11px;
+  color: var(--accent-lightning);
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+/* Action Controls in Header */
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.icon-btn {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.icon-btn:hover, .icon-btn:active {
+  background: rgba(255, 255, 255, 0.14);
+  transform: translateY(-1px);
+}
+
+.icon-btn.primary {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: rgba(56, 189, 248, 0.3);
+  color: var(--accent-cyan);
+}
+
+.icon-btn.primary:hover {
+  background: rgba(56, 189, 248, 0.25);
+}
+
+.icon-btn.active {
+  background: var(--accent-cyan);
+  color: #000;
+  border-color: var(--accent-cyan);
+}
+
+.icon-btn.small {
+  width: 32px;
+  height: 32px;
+  font-size: 14px;
+}
+
+/* ==========================================================================
+   Legend Overlay
+   ========================================================================== */
+
+.legend-panel {
+  position: absolute;
+  bottom: 24px;
+  left: 16px;
+  padding: 10px 14px;
+  border-radius: 10px;
+  z-index: 5;
+  pointer-events: auto;
+}
+
+.legend-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+
+.legend-items {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.color-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+}
+
+.color-dot.age-0 { background: var(--stroke-new); box-shadow: 0 0 6px var(--stroke-new); }
+.color-dot.age-5 { background: var(--stroke-5m); }
+.color-dot.age-20 { background: var(--stroke-20m); }
+.color-dot.age-60 { background: var(--stroke-60m); }
+
+/* ==========================================================================
+   Control Drawer / Settings Sidebar
+   ========================================================================== */
+
+.drawer {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  bottom: 12px;
+  width: 360px;
+  max-width: calc(100vw - 24px);
+  border-radius: 14px;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  transform: translateX(calc(100% + 24px));
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  overflow: hidden;
+}
+
+.drawer.open {
+  transform: translateX(0);
+}
+
+.drawer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border-panel);
+}
+
+.drawer-header h3 {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.drawer-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.settings-group h4 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+}
+
+.setting-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin-top: -4px;
+}
+
+/* Switches & Toggles */
+.switch-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  cursor: pointer;
+  position: relative;
+}
+
+.switch-row input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.slider {
+  position: relative;
+  display: inline-block;
+  width: 44px;
+  height: 24px;
+  background-color: rgba(255, 255, 255, 0.15);
+  border-radius: 24px;
+  transition: 0.3s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 18px;
+  width: 18px;
+  left: 3px;
+  bottom: 3px;
+  background-color: white;
+  border-radius: 50%;
+  transition: 0.3s;
+}
+
+.switch-row input:checked + .slider {
+  background-color: var(--accent-cyan);
+}
+
+.switch-row input:checked + .slider:before {
+  transform: translateX(20px);
+}
+
+/* Slider Controls */
+.slider-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.slider-row input[type="range"] {
+  flex: 1;
+  accent-color: var(--accent-cyan);
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* Pill Selectors */
+.pill-selector {
+  display: flex;
+  background: rgba(0, 0, 0, 0.3);
+  padding: 3px;
+  border-radius: 8px;
+  gap: 4px;
+}
+
+.pill-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  padding: 8px 0;
+  font-size: 12px;
+  font-weight: 600;
+  font-family: var(--font-mono);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.pill-btn.active {
+  background: rgba(255, 255, 255, 0.15);
+  color: var(--text-primary);
+}
+
+/* Map Theme Grid */
+.map-theme-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.theme-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text-secondary);
+  padding: 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.theme-btn.active {
+  background: rgba(56, 189, 248, 0.15);
+  border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
+}
+
+/* Action Buttons */
+.action-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s ease;
+}
+
+.action-btn.primary {
+  background: var(--accent-cyan);
+  color: #000;
+}
+
+.action-btn.primary:hover {
+  background: #7dd3fc;
+}
+
+.action-btn.secondary {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text-primary);
+}
+
+.action-btn.secondary:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.about-text {
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+/* Notification Toast */
+.toast {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-20px);
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  z-index: 100;
+  opacity: 0;
+  pointer-events: none;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Leaflet Customization */
+.leaflet-control-zoom {
+  border: none !important;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5) !important;
+}
+
+.leaflet-control-zoom a {
+  background-color: var(--bg-panel) !important;
+  color: var(--text-primary) !important;
+  border: 1px solid var(--border-panel) !important;
+  backdrop-filter: blur(10px);
+}
+
+.leaflet-control-zoom a:hover {
+  background-color: var(--bg-panel-hover) !important;
+}
+
+.leaflet-control-attribution {
+  background: rgba(0,0,0,0.6) !important;
+  color: var(--text-muted) !important;
+  font-size: 10px !important;
+}
+
+.leaflet-control-attribution a {
+  color: var(--text-secondary) !important;
+}
+
+/* User Location Pulse Marker */
+.user-pulse-marker {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--accent-cyan);
+  border: 2px solid white;
+  box-shadow: 0 0 12px var(--accent-cyan);
+  position: relative;
+}
+
+.user-pulse-marker::after {
+  content: "";
+  position: absolute;
+  top: -8px;
+  left: -8px;
+  right: -8px;
+  bottom: -8px;
+  border-radius: 50%;
+  border: 2px solid var(--accent-cyan);
+  animation: pulse-ring 2s infinite cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+@keyframes pulse-ring {
+  0% { transform: scale(0.5); opacity: 1; }
+  100% { transform: scale(2.2); opacity: 0; }
+}
+
+/* ==========================================================================
+   Mobile Responsive Adjustments
+   ========================================================================== */
+
+@media (max-width: 768px) {
+  #topBar {
+    top: max(8px, var(--safe-top));
+    left: 8px;
+    right: 8px;
+    padding: 0 10px;
+    height: 50px;
+  }
+
+  .app-title {
+    display: none;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+
+  .telemetry-bar {
+    gap: 6px;
+  }
+
+  .telemetry-item {
+    padding: 3px 6px;
+  }
+
+  .telemetry-value {
+    font-size: 13px;
+  }
+
+  .telemetry-label {
+    font-size: 9px;
+  }
+
+  .legend-panel {
+    bottom: max(16px, var(--safe-bottom));
+    left: 10px;
+    padding: 8px 10px;
+  }
+
+  .legend-items {
+    font-size: 10px;
+  }
+
+  /* Drawer turns into a smooth mobile bottom-sheet */
+  .drawer {
+    top: auto;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: 80vh;
+    border-radius: 20px 20px 0 0;
+    transform: translateY(100%);
+    padding-bottom: var(--safe-bottom);
+  }
+
+  .drawer.open {
+    transform: translateY(0);
+  }
+}

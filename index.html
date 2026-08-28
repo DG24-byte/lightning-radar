@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>Lightning Radar — Real-Time Monitor</title>
+  
+  <!-- PWA & Mobile Meta Tags -->
+  <meta name="description" content="High-performance real-time lightning monitoring radar with acoustic thunder waves, station rays, and live weather radar.">
+  <meta name="theme-color" content="#0d1117">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Lightning">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="icon" type="image/svg+xml" href="/icons/icon.svg">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+  
+  <!-- Google Fonts: Inter & JetBrains Mono -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="/css/style.css?v=3.1">
+</head>
+<body class="dark-theme">
+  <!-- Map Container -->
+  <div id="map"></div>
+
+  <!-- HTML5 Canvas Overlay for High-Performance Rendering -->
+  <canvas id="lightningCanvas"></canvas>
+
+  <!-- Top Navigation & Live Telemetry Bar -->
+  <header id="topBar" class="glass-panel">
+    <div class="header-left">
+      <div class="app-branding">
+        <span class="bolt-icon">⚡</span>
+        <span class="app-title">LightningRadar</span>
+      </div>
+      
+      <div class="status-badge" id="statusBadge" title="Connection Status">
+        <span class="status-dot live"></span>
+        <span class="status-text" id="statusText">CONNECTING</span>
+      </div>
+    </div>
+
+    <!-- Live Telemetry Stream -->
+    <div class="telemetry-bar">
+      <div class="telemetry-item" title="Lightning strikes per minute in currently visible map area">
+        <span class="telemetry-label">RATE</span>
+        <span class="telemetry-value highlight" id="strikeRateVal">0</span>
+        <span class="telemetry-unit">/min</span>
+      </div>
+
+      <div class="telemetry-item" title="Active strikes in currently visible map area">
+        <span class="telemetry-label">ACTIVE</span>
+        <span class="telemetry-value" id="activeStrikesVal">0</span>
+      </div>
+
+      <div class="telemetry-item proximity-item" id="proximityCard" title="Distance to closest strike relative to your location">
+        <span class="telemetry-label">CLOSEST</span>
+        <span class="telemetry-value accent" id="closestDistVal">--</span>
+        <span class="telemetry-unit" id="closestUnit">mi</span>
+        <span class="thunder-eta" id="thunderEta" style="display:none;"></span>
+      </div>
+    </div>
+
+    <!-- Top Action Controls -->
+    <div class="header-actions">
+      <button id="soundToggleBtn" class="icon-btn" title="Toggle Thunder Audio" aria-label="Toggle Sound">
+        <svg id="soundIcon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <!-- Speaker Muted Default -->
+          <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+          <line x1="23" y1="9" x2="17" y2="15" class="mute-line"></line>
+          <line x1="17" y1="9" x2="23" y2="15" class="mute-line"></line>
+        </svg>
+      </button>
+
+      <button id="locateBtn" class="icon-btn" title="Center on My Location" aria-label="Locate Me">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"></circle>
+          <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+          <line x1="12" y1="2" x2="12" y2="5"></line>
+          <line x1="12" y1="19" x2="12" y2="22"></line>
+          <line x1="2" y1="12" x2="5" y2="12"></line>
+          <line x1="19" y1="12" x2="22" y2="12"></line>
+        </svg>
+      </button>
+
+      <button id="fullscreenBtn" class="icon-btn desktop-only" title="Toggle Fullscreen" aria-label="Fullscreen">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+        </svg>
+      </button>
+
+      <button id="menuToggleBtn" class="icon-btn primary" title="Open Layer Controls & Settings" aria-label="Menu">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="3" y1="12" x2="21" y2="12"></line>
+          <line x1="3" y1="6" x2="21" y2="6"></line>
+          <line x1="3" y1="18" x2="21" y2="18"></line>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Strike Legend Floating Overlay -->
+  <div class="legend-panel glass-panel" id="legendPanel">
+    <div class="legend-title">STRIKE AGE</div>
+    <div class="legend-items">
+      <div class="legend-item"><span class="color-dot age-0"></span> &lt; 1 min (New)</div>
+      <div class="legend-item"><span class="color-dot age-5"></span> 5 min</div>
+      <div class="legend-item"><span class="color-dot age-20"></span> 20 min</div>
+      <div class="legend-item"><span class="color-dot age-60"></span> 60 min</div>
+    </div>
+  </div>
+
+  <!-- Collapsible Control Drawer / Settings Panel -->
+  <aside id="settingsDrawer" class="drawer glass-panel">
+    <div class="drawer-header">
+      <h3>Controls & Settings</h3>
+      <button id="closeDrawerBtn" class="icon-btn small" aria-label="Close">✕</button>
+    </div>
+
+    <div class="drawer-content">
+      <!-- Section: Visual Layers -->
+      <div class="settings-group">
+        <h4>Visual Layers</h4>
+        
+        <label class="switch-row">
+          <span>Acoustic Thunder Waves</span>
+          <input type="checkbox" id="toggleThunderWaves" checked>
+          <span class="slider"></span>
+        </label>
+        <p class="setting-desc">Expanding concentric circles propagating at speed of sound (~1,125 ft/s or 1 mile every 4.7 seconds).</p>
+
+        <label class="switch-row">
+          <span>Station Detector Rays</span>
+          <input type="checkbox" id="toggleStationRays" checked>
+          <span class="slider"></span>
+        </label>
+        <p class="setting-desc">Triangulation lines pointing from detector receivers to strike epicenter.</p>
+
+        <label class="switch-row">
+          <span>Live Weather Radar</span>
+          <input type="checkbox" id="toggleRadar" checked>
+          <span class="slider"></span>
+        </label>
+        <div class="slider-row" id="radarOpacityRow">
+          <span>Radar Opacity</span>
+          <input type="range" id="radarOpacitySlider" min="10" max="100" value="65">
+          <span id="radarOpacityVal">65%</span>
+        </div>
+      </div>
+
+      <!-- Section: Strike History Filter -->
+      <div class="settings-group">
+        <h4>Strike History Duration</h4>
+        <div class="pill-selector">
+          <button class="pill-btn" data-age="15">15m</button>
+          <button class="pill-btn" data-age="30">30m</button>
+          <button class="pill-btn active" data-age="60">60m</button>
+          <button class="pill-btn" data-age="120">120m</button>
+        </div>
+      </div>
+
+      <!-- Section: Audio Synthesizer -->
+      <div class="settings-group">
+        <h4>Thunder Audio Engine</h4>
+        
+        <label class="switch-row">
+          <span>Enable Sound Effects</span>
+          <input type="checkbox" id="toggleSoundMaster">
+          <span class="slider"></span>
+        </label>
+
+        <label class="switch-row">
+          <span>Arrival Shockwave Rumble</span>
+          <input type="checkbox" id="toggleThunderRumble" checked>
+          <span class="slider"></span>
+        </label>
+        <p class="setting-desc">Simulated low-frequency thunder rumble when acoustic wave arrives at your location.</p>
+
+        <label class="switch-row">
+          <span>Detection Click / Crackle</span>
+          <input type="checkbox" id="toggleDischargeClick" checked>
+          <span class="slider"></span>
+        </label>
+
+        <div class="slider-row">
+          <span>Volume</span>
+          <input type="range" id="soundVolumeSlider" min="0" max="100" value="70">
+          <span id="soundVolumeVal">70%</span>
+        </div>
+
+        <button id="testAudioBtn" class="action-btn secondary">Test Synthesizer Audio</button>
+      </div>
+
+      <!-- Section: Proximity Alert Settings -->
+      <div class="settings-group">
+        <h4>Proximity Safety Perimeter</h4>
+        <label class="switch-row">
+          <span>Proximity Alert Warning</span>
+          <input type="checkbox" id="toggleProximityAlert">
+          <span class="slider"></span>
+        </label>
+        <div class="slider-row">
+          <span>Alert Radius</span>
+          <input type="range" id="proximityRadiusSlider" min="2" max="60" step="2" value="15">
+          <span id="proximityRadiusVal">15 mi</span>
+        </div>
+      </div>
+
+      <!-- Section: Base Map Style -->
+      <div class="settings-group">
+        <h4>Map Style</h4>
+        <div class="map-theme-grid">
+          <button class="theme-btn active" data-theme="google_satellite">🛰️ Google Satellite</button>
+          <button class="theme-btn" data-theme="google_pure">🌍 Pure Satellite</button>
+          <button class="theme-btn" data-theme="google_terrain">⛰️ Google Terrain</button>
+          <button class="theme-btn" data-theme="google_streets">🗺️ Google Roads</button>
+          <button class="theme-btn" data-theme="dark">🌑 Dark Canvas</button>
+          <button class="theme-btn" data-theme="osm">🌐 OpenStreetMap</button>
+        </div>
+      </div>
+
+      <!-- Section: About & Installation -->
+      <div class="settings-group about-group">
+        <h4>About</h4>
+        <p class="about-text">
+          Real-Time Lightning Monitoring System.<br>
+          Data sourced from the global Blitzortung volunteer radio multilateration network.
+        </p>
+        <button id="pwaInstallBtn" class="action-btn primary" style="display:none;">
+          📲 Install App to Device
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Notification Toast -->
+  <div id="toast" class="toast glass-panel"></div>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- App Scripts (Cache-Busted) -->
+  <script src="/js/audio.js?v=3.1"></script>
+  <script src="/js/radar.js?v=3.1"></script>
+  <script src="/js/stations.js?v=3.1"></script>
+  <script src="/js/renderer.js?v=3.1"></script>
+  <script src="/js/app.js?v=3.1"></script>
+
+  <!-- PWA Service Worker Registration -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(regs => {
+        for (let reg of regs) reg.update();
+      });
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js?v=2.5').catch(err => console.log('SW error:', err));
+      });
+    }
+  </script>
+</body>
+</html>

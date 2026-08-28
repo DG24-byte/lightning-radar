@@ -1,0 +1,11 @@
+{
+  "name": "lightning-radar",
+  "version": "1.0.0",
+  "description": "Real-time lightning monitoring radar app",
+  "scripts": {
+    "start": "python server.py"
+  },
+  "keywords": ["lightning", "radar", "pwa", "weather"],
+  "author": "",
+  "license": "ISC"
+}
