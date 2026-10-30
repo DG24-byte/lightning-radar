@@ -1,0 +1,5 @@
+{
+  "name": "Lightning Radar — Real-Time Monitor",
+  "description": "High-performance real-time lightning monitoring radar with acoustic thunder waves, station rays, and live weather radar.",
+  "requestFramePermissions": ["geolocation"]
+}
